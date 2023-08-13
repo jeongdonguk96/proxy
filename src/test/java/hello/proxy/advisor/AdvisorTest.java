@@ -11,6 +11,7 @@ import org.springframework.aop.MethodMatcher;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.aop.support.NameMatchMethodPointcut;
 
 import java.lang.reflect.Method;
 
@@ -41,7 +42,7 @@ public class AdvisorTest {
         // 프록시 팩토리 생성
         ProxyFactory proxyFactory = new ProxyFactory(target);
         // 포인트컷과 어드바이스로 어드바이저 생성
-        DefaultPointcutAdvisor advisor = new DefaultPointcutAdvisor(Pointcut.TRUE, new TimeAdvice());
+        DefaultPointcutAdvisor advisor = new DefaultPointcutAdvisor(new MyPointcut(), new TimeAdvice());
         // 어드바이저 추가
         proxyFactory.addAdvisor(advisor);
         ServiceInterface proxy = (ServiceInterface) proxyFactory.getProxy();
@@ -49,6 +50,29 @@ public class AdvisorTest {
         proxy.save();
         proxy.find();
     }
+
+    @Test
+    @DisplayName("스프링이 제공하는 포인트컷")
+    void advisorTest3() {
+        // 타겟 클래스 생성
+        ServiceInterface target = new ServiceInterfaceImpl();
+        // 프록시 팩토리 생성
+        ProxyFactory proxyFactory = new ProxyFactory(target);
+        // 스프링이 제공하는 포인트컷
+        NameMatchMethodPointcut pointcut = new NameMatchMethodPointcut();
+        // 해당 이름의 매서드만 포인트컷으로 지정
+        pointcut.setMappedName("save");
+        // 포인트컷과 어드바이스로 어드바이저 생성
+        DefaultPointcutAdvisor advisor = new DefaultPointcutAdvisor(pointcut, new TimeAdvice());
+        // 어드바이저 추가
+        proxyFactory.addAdvisor(advisor);
+        ServiceInterface proxy = (ServiceInterface) proxyFactory.getProxy();
+
+        proxy.save();
+        proxy.find();
+    }
+
+
 
     static class MyPointcut implements Pointcut {
 
@@ -59,7 +83,7 @@ public class AdvisorTest {
 
         @Override
         public MethodMatcher getMethodMatcher() {
-            return null;
+            return new MyMethodMatcher();
         }
     }
 
